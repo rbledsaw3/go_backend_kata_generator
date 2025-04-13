@@ -1,0 +1,381 @@
+[
+    {
+        "name": "users",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "username text unique",
+            "email text unique",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": []
+    },
+    {
+        "name": "posts",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "title text",
+            "content text",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "comments",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "post_id uuid references posts(id)",
+            "user_id uuid references users(id)",
+            "content text",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["posts", "users"]
+    },
+    {
+        "name": "likes",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "post_id uuid references posts(id)",
+            "user_id uuid references users(id)",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["posts", "users"]
+    },
+    {
+        "name": "tags",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "name text unique",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": []
+    },
+    {
+        "name": "post_tags",
+        "columns": [
+            "post_id uuid references posts(id)",
+            "tag_id uuid references tags(id)",
+            "primary key (post_id, tag_id)"
+        ],
+        "dependencies": ["posts", "tags"]
+    },
+    {
+        "name": "products",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "name text unique",
+            "description text",
+            "price numeric(10, 2)",
+            "stock numeric(10, 0) default 0"
+        ],
+        "dependencies": []
+    },
+    {
+        "name": "orders",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "product_id uuid references products(id)",
+            "quantity numeric(10, 0) default 1",
+            "order_date timestamptz default now()"
+        ],
+        "dependencies": ["users", "products"]
+    },
+    {
+        "name": "order_status",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "order_id uuid references orders(id)",
+            "status text",
+            "updated_at timestamptz default now()"
+        ],
+        "dependencies": ["orders"]
+    },
+    {
+        "name": "product_reviews",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "product_id uuid references products(id)",
+            "user_id uuid references users(id)",
+            "rating numeric(2, 1) check (rating >= 1 and rating <= 5)",
+            "review text",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["products", "users"]
+    },
+    {
+        "name": "inventory",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "product_id uuid references products(id)",
+            "quantity numeric(10, 0) default 0",
+            "last_updated timestamptz default now()"
+        ],
+        "dependencies": ["products"]
+    },
+    {
+        "name": "shipping",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "order_id uuid references orders(id)",
+            "address text",
+            "shipped_at timestamptz",
+            "delivery_date timestamptz"
+        ],
+        "dependencies": ["orders"]
+    },
+    {
+        "name": "payment",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "order_id uuid references orders(id)",
+            "amount numeric(10, 2)",
+            "payment_date timestamptz default now()",
+            "status text"
+        ],
+        "dependencies": ["orders"]
+    },
+    {
+        "name": "transactions",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "amount numeric(10, 2)",
+            "transaction_date timestamptz default now()",
+            "status text"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "notifications",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "message text",
+            "created_at timestamptz default now()",
+            "is_read boolean default false"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "user_roles",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "role text",
+            "assigned_at timestamptz default now()"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "audit_logs",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "action text",
+            "timestamp timestamptz default now()",
+            "details text"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "sessions",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "session_token text unique",
+            "created_at timestamptz default now()",
+            "expires_at timestamptz"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "favorites",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "post_id uuid references posts(id)",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["users", "posts"]
+    },
+    {
+        "name": "user_settings",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "setting_key text",
+            "setting_value text",
+            "updated_at timestamptz default now()"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "user_activity",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "activity_type text",
+            "activity_date timestamptz default now()",
+            "details text"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "user_notifications",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "notification_id uuid references notifications(id)",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["users", "notifications"]
+    },
+    {
+        "name": "user_friends",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "friend_id uuid references users(id)",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["users"]
+    },
+    {
+        "name": "groups",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "name text unique",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": []
+    },
+    {
+        "name": "group_members",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "group_id uuid references groups(id)",
+            "user_id uuid references users(id)",
+            "joined_at timestamptz default now()"
+        ],
+        "dependencies": ["groups", "users"]
+    },
+    {
+        "name": "group_posts",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "group_id uuid references groups(id)",
+            "user_id uuid references users(id)",
+            "title text",
+            "content text",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["groups", "users"]
+    },
+    {
+        "name": "group_comments",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "group_post_id uuid references group_posts(id)",
+            "user_id uuid references users(id)",
+            "content text",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["group_posts", "users"]
+    },
+    {
+        "name": "group_likes",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "group_post_id uuid references group_posts(id)",
+            "user_id uuid references users(id)",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["group_posts", "users"]
+    },
+    {
+        "name": "group_tags",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "name text unique",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": []
+    },
+    {
+        "name": "group_post_tags",
+        "columns": [
+            "group_post_id uuid references group_posts(id)",
+            "tag_id uuid references group_tags(id)",
+            "primary key (group_post_id, tag_id)"
+        ],
+        "dependencies": ["group_posts", "group_tags"]
+    },
+    {
+        "name": "group_favorites",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "group_post_id uuid references group_posts(id)",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["users", "group_posts"]
+    },
+    {
+        "name": "group_user_roles",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "group_id uuid references groups(id)",
+            "user_id uuid references users(id)",
+            "role text",
+            "assigned_at timestamptz default now()"
+        ],
+        "dependencies": ["groups", "users"]
+    },
+    {
+        "name": "group_audit_logs",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "group_id uuid references groups(id)",
+            "action text",
+            "timestamp timestamptz default now()",
+            "details text"
+        ],
+        "dependencies": ["users", "groups"]
+    },
+    {
+        "name": "group_sessions",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "group_id uuid references groups(id)",
+            "session_token text unique",
+            "created_at timestamptz default now()",
+            "expires_at timestamptz"
+        ],
+        "dependencies": ["users", "groups"]
+    },
+    {
+        "name": "group_user_activity",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "group_id uuid references groups(id)",
+            "activity_type text",
+            "activity_date timestamptz default now()",
+            "details text"
+        ],
+        "dependencies": ["users", "groups"]
+    },
+    {
+        "name": "group_user_notifications",
+        "columns": [
+            "id uuid primary key default gen_random_uuid()",
+            "user_id uuid references users(id)",
+            "notification_id uuid references notifications(id)",
+            "created_at timestamptz default now()"
+        ],
+        "dependencies": ["users", "notifications"]
+    }
+]
