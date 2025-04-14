@@ -41,7 +41,19 @@ func main() {
         os.Exit(1)
     }
 
-    projectName := fmt.Sprintf("%s-%s", randomChoice(adjectives), randomChoice(nouns))
+    adj, err := randomChoice(adjectives)
+    if err != nil {
+        log.Fatalf("Error choosing random adjective: %v", err)
+        os.Exit(1)
+    }
+
+    n, err := randomChoice(nouns)
+    if err != nil {
+        log.Fatalf("Error choosing random noun: %v", err)
+        os.Exit(1)
+    }
+
+    projectName := fmt.Sprintf("%s-%s", adj, n)
 
     tableMap := make(map[string]Table)
     for _, t := range tables {
@@ -59,7 +71,11 @@ func main() {
         }
     }
 
-    sShuffle(possibleTables)
+    err = sShuffle(possibleTables)
+    if err != nil {
+        log.Fatalf("Error shuffling possible tables: %v", err)
+        os.Exit(1)
+    }
 
     for _, tableName := range possibleTables {
         if len(selectedTables) >= 5 {
@@ -92,7 +108,7 @@ func main() {
         os.Exit(1)
     }
 
-    err = os.WriteFile(jsonPath, out, 0644)
+    err = os.WriteFile(jsonPath, out, 0o644)
     if err != nil {
         log.Fatalf("Error writing kata JSON file: %v", err)
         os.Exit(1)
@@ -102,8 +118,8 @@ func main() {
     fmt.Println(string(out))
 }
 
-func loadWords(filepath string) ([]string, error) {
-    data, err := os.ReadFile(filepath)
+func loadWords(path string) ([]string, error) {
+    data, err := os.ReadFile(path)
     if err != nil {
         return nil, fmt.Errorf("failed to read file: %v", err)
     }
@@ -111,8 +127,8 @@ func loadWords(filepath string) ([]string, error) {
     return lines, nil
 }
 
-func loadTablesFromJSON(filepath string) ([]Table, error) {
-    data, err := os.ReadFile(filepath)
+func loadTablesFromJSON(path string) ([]Table, error) {
+    data, err := os.ReadFile(path)
     if err != nil {
         return nil, fmt.Errorf("failed to read JSON file: %v", err)
     }
@@ -124,26 +140,36 @@ func loadTablesFromJSON(filepath string) ([]Table, error) {
     return tables, nil
 }
 
-func randomChoice(choices []string) string {
-    n := sRandInt(len(choices))
-    return choices[n]
+func randomChoice(choices []string) (string, error) {
+    n, err := sRandInt(len(choices))
+    if err != nil {
+        return "", fmt.Errorf("failed to get random choice: %v", err)
+    }
+    return choices[n], nil
 }
 
-func sRandInt(max int) int {
-    if max <= 0 {
-        panic("max must be greater than 0")
+func sRandInt(limit int) (int, error) {
+    if limit <= 0 {
+        panic("limit must be greater than 0")
     }
     var n uint64
-    binary.Read(rand.Reader, binary.LittleEndian, &n)
-    return int(n % uint64(max))
+    err := binary.Read(rand.Reader, binary.LittleEndian, &n)
+    if err != nil {
+        return -1, fmt.Errorf("failed to read random number: %v", err)
+    }
+    return int(n % uint64(limit)), nil
 }
 
-func sShuffle(slice []string) {
+func sShuffle(slice []string) error {
     n := len(slice)
     for i := n - 1; i > 0; i-- {
-        j := sRandInt(i + 1)
+        j, err := sRandInt(i + 1)
+        if err != nil {
+            return fmt.Errorf("failed to shuffle slice: %v", err)
+        }
         slice[i], slice[j] = slice[j], slice[i]
     }
+    return nil
 }
 
 func addTableWithDependencies(tableMap, selected map[string]Table, name string) {
